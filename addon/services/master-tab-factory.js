@@ -1,4 +1,3 @@
-import { assign } from '@ember/polyfills';
 import { A } from '@ember/array';
 import { Promise } from 'rsvp';
 import { run } from '@ember/runloop';
@@ -136,22 +135,25 @@ export default Service.extend(Evented, {
    * the function provided to 'else()'.
    */
   run(func, options = {}) {
+    let result = null;
     if (typeof options !== 'object') {
       throw 'Options must be an object.';
     }
-    const finalOptions = assign({
-      force: false
-    }, options);
+    const finalOptions = {
+      force: false,
+      ...options
+    };
     const _isMasterTab = isMasterTab();
     if (_isMasterTab || finalOptions.force) {
-      func();
+      result = func();
     }
     return {
       else(func) {
         if (!_isMasterTab && !finalOptions.force) {
           func();
         }
-      }
+      },
+      result
     };
   },
   /**
@@ -165,11 +167,12 @@ export default Service.extend(Evented, {
     if (typeof options !== 'object') {
       throw 'Options must be an object.';
     }
-    const finalOptions = assign({
+    const finalOptions = {
       force: false,
       waitNext: true,
-      waitNextDelay: 1000
-    }, options);
+      waitNextDelay: 1000,
+      ...options
+    };
     const lockNameKey = `${namespace}lock:${lockName}`;
     const lockResultKey = `${lockNameKey}:result`;
     const lockResultTypeKey = `${lockNameKey}:result-type`;
